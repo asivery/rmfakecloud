@@ -69,6 +69,10 @@ func (app *ReactAppWrapper) RegisterRoutes(router *gin.Engine) {
 	auth.POST("folders", app.createFolder)
 	auth.GET("documents/:docid/metadata", app.getDocumentMetadata)
 
+	// raw blob access
+	auth.GET("blobs/:blobid", app.getRawBlob)
+	auth.GET("documents/:docid/blobs", app.getBlobTree)
+
 	// integrations
 	auth.GET("integrations", app.listIntegrations)
 	auth.POST("integrations", app.createIntegration)
