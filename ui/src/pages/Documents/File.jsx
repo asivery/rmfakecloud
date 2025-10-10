@@ -18,6 +18,8 @@ import { pdfjs, Document, Page } from "react-pdf";
 //   import.meta.url,
 // ).toString(); 
 
+import { RmLinesRenderer } from "../../components/RmLinesRenderer";
+import { generateDocumentEnvironment } from '../../common/blobapi';
 
 export default function FileViewer({ file, onSelect }) {
   const { data } = file;
@@ -26,6 +28,8 @@ export default function FileViewer({ file, onSelect }) {
 
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  // TODO: Add support for accessing the earlier format:
+  const [renderPDF, setRenderPDF] = useState(false);
   // const [width, setWidth] = useState(100);
   const [height, setHeight] = useState(100);
   const onLoadSuccess = (pdf) => {
@@ -51,8 +55,11 @@ export default function FileViewer({ file, onSelect }) {
 			setHeight(event[0].contentBoxSize[0].blockSize);
 		});
 
-		resizeObserver.observe(parent.current);
-	});
+    if(parent.current) {
+      resizeObserver.observe(parent.current);
+      return () => resizeObserver.disconnect()
+    }
+	}, [parent]);
 
   // TODO: add loading and error handling
   const onDownloadClick = () => {
@@ -78,6 +85,19 @@ export default function FileViewer({ file, onSelect }) {
       worker: new pdfjs.PDFWorker()
     }
   },[pdfjs])
+
+  const [documentEnv, setDocumentEnv] = useState(null);
+  useEffect(() => {
+    if(renderPDF) {
+      setDocumentEnv(null);
+    } else {
+      (async () => {
+        const env = await generateDocumentEnvironment(file.id);
+        setDocumentEnv(env);
+        setPages(env.pageCount);
+      })();
+    }
+  }, [file]);
 
   return (
     <>
@@ -105,10 +125,12 @@ export default function FileViewer({ file, onSelect }) {
 
       </Navbar>
 
-
-      {file && (
+      {file && !renderPDF && (
+        <RmLinesRenderer page={page - 1} environment={documentEnv} />
+      )}
+      {file && renderPDF && (
         <div ref={parent} style={{height: "95%"}}>
-		  <Document file={downloadUrl} onLoadSuccess={onLoadSuccess} options={options}>
+		      <Document file={downloadUrl} onLoadSuccess={onLoadSuccess} options={options}>
             <Page pageNumber={page} 
 							// width={ width } 
 							height={ height} 
