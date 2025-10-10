@@ -42,11 +42,6 @@ async function render(renderer: RmRendererApi, rawData: Uint8Array) {
     const rawContent = new Uint8ClampedArray(bitmap.subarray(8));
     const width = dv.getUint32(0);
     const height = dv.getUint32(4);
-    for(let i = 0; i<rawContent.length - 8; i += 4) {
-        let z = rawContent[1 + i];
-        rawContent[1 + i] = rawContent[2 + i];
-        rawContent[2 + i] = z;
-    }
     const data = new ImageData(rawContent, dv.getUint32(0), dv.getUint32(4));
     return { width, height, data };
 }

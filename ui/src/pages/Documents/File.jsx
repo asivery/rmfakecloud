@@ -95,6 +95,7 @@ export default function FileViewer({ file, onSelect }) {
         const env = await generateDocumentEnvironment(file.id);
         setDocumentEnv(env);
         setPages(env.pageCount);
+        setPage(1);
       })();
     }
   }, [file]);
